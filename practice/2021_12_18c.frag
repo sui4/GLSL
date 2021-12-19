@@ -30,12 +30,13 @@ float df(vec3 pos) {
     c = vec3(sin(iTime * 1.5) * 1.3, 0., 0.);
     float d2 = dfSphere(pos, c, 0.5);
     float d3 = dfTorus(pos, vec3(0.), vec2(1., 0.3));
-    float r1 = smoothMin(d1, d2, 10.);
-    float r2 = smoothMin(d2, d3, 10.);
-    float r3 = smoothMin(d3, d1, 10.);    
-    
-    return smoothMin(r1, smoothMin(r2, r3, 10.), 10.);
+    return smoothMin(d1, smoothMin(d2, d3, 10.), 10.);
 
+    // float r1 = smoothMin(d1, d2, 10.);
+    // float r2 = smoothMin(d2, d3, 10.);
+    // float r3 = smoothMin(d3, d1, 10.);    
+    
+    // return smoothMin(r1, smoothMin(r2, r3, 10.), 10.);
 }
 vec3 getNormal(vec3 pos) {
     float d = 0.0001;
