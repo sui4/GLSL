@@ -4,9 +4,9 @@
 */
 const float EPS = 0.00001;
 const float PI = 3.14159265;
-const float fov = PI / 4.;
+const float fov = PI / 3.;
 
-vec3 cp = vec3(0., 0., 2.);
+vec3 cp = vec3(0., 0., 20.);
 vec3 ld = normalize(vec3(0., -1.5, -1.));
 
 // angle: radian
@@ -24,7 +24,12 @@ vec3 rotate(vec3 p, float angle, vec3 axis) {
     return m * p;
 }
 
-float Torus(vec3 p, vec3 c, vec2 s) {
+float smoothMin(float d1, float d2, float k) {
+    float h = exp(-k * d1) + exp(-k * d2);
+    return - log(h) / k;
+}
+
+float torus(vec3 p, vec3 c, vec2 s) {
     vec3 rp = p - c;
     vec2 r = vec2(length(p.xy) - s.x, rp.z);
     return length(r) - s.y;
@@ -32,7 +37,7 @@ float Torus(vec3 p, vec3 c, vec2 s) {
 
 float box(vec3 p, vec3 c, vec3 s) {
     vec3 rp = p - c;
-    return length(max(abs(rp) - s, 0.));
+    return length(max(abs(rp) - s, 0.)) - 0.03;
 }
 
 float cylinder(vec3 p, vec3 c, vec2 s) {
@@ -51,9 +56,16 @@ float cylinder(vec3 p, vec3 c, vec2 s) {
 }
 
 float df(vec3 pos) {
-    vec3 p = rotate(pos, radians(iTime * 10.0), vec3(1., 0., 1.));
-    // return cylinder(p, vec3(0.), vec2(0.5, 0.4));
-    return box(p, vec3(0.), vec3(0.5));
+    vec3 p2 = rotate(pos, radians(iTime * 70.), vec3(0., 1., 0.));
+    vec3 p3 = rotate(pos, radians(iTime * 140.), vec3(1., 0., 0.));
+    vec3 p4 = rotate(p2, radians(iTime * 50.), vec3(1., 0., 1.));
+    float d1 = cylinder(pos, vec3(0.), vec2(0.2, 0.1));
+    float d2 = torus(p2, vec3(0.), vec2(0.8, 0.05));
+    float d3 = torus(p3, vec3(0.), vec2(0.8, 0.05));
+    float d4 = box(p4, vec3(0.), vec3(1.2, 0.02, 0.02));
+
+    float t = smoothMin(d3, smoothMin(d2, d1, 12.), 12.);
+    return smoothMin(d4, t, 12.);
 }
 
 vec3 getNormal(vec3 pos) {
@@ -70,6 +82,8 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec3 ro, rd;
     rd = normalize(vec3(sin(fov) * pos, -cos(fov)));
     ro = cp;
+    rd = vec3(0., 0., -1.);
+    ro = vec3(pos, 5.);
     for (int i=0; i<128; i++) {
         float dist = df(ro);
         if (dist < EPS) {
